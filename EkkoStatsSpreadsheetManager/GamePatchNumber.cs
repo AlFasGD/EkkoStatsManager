@@ -31,6 +31,7 @@ namespace EkkoStatsSpreadsheetManager
         }
 
         public GamePatchNumber GetNextPatch() => new GamePatchNumber(Major, Minor + 1);
+        public GamePatchNumber GetPreviousPatch() => new GamePatchNumber(Major, Minor - 1);
 
         public static bool operator >(GamePatchNumber left, GamePatchNumber right)
         {
