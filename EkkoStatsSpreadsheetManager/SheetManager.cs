@@ -16,7 +16,7 @@ namespace EkkoStatsSpreadsheetManager
 
         public SortedSet<GamePatch> Patches => new SortedSet<GamePatch>(patches);
 
-        public event Action<string, GamePatch> PatchSheetCreationRequested;
+        public event Action<string, GamePatch, bool> PatchSheetCreationRequested;
 
         public SheetManager(SheetsService service, Spreadsheet spreadsheet)
         {
@@ -26,10 +26,10 @@ namespace EkkoStatsSpreadsheetManager
         }
 
         public void CreateNewPatch(int patchDuration = 14) => CreateNewPatch(patches.Max.GetNextPatch(patchDuration));
-        public void CreateNewPatch(GamePatch patch)
+        public void CreateNewPatch(GamePatch patch, bool isOlderPatch = false)
         {
             patches.Add(patch);
-            PatchSheetCreationRequested?.Invoke(Spreadsheet.SpreadsheetId, patch);
+            PatchSheetCreationRequested?.Invoke(Spreadsheet.SpreadsheetId, patch, isOlderPatch);
         }
 
         private void GetPatches()
@@ -41,6 +41,9 @@ namespace EkkoStatsSpreadsheetManager
                 var values = Service.Spreadsheets.Values.Get(Spreadsheet.SpreadsheetId, $"{s.Properties.Title}!A5:A").Execute();
 
                 Console.Write($"\n{number}");
+
+                var patch = new GamePatch(number);
+                patches.Add(patch);
 
                 if (values.Values == null)
                     continue;
@@ -58,7 +61,8 @@ namespace EkkoStatsSpreadsheetManager
                     if (day > lastDay)
                         lastDay = day;
                 }
-                patches.Add(new GamePatch(number, firstDay, lastDay));
+                patch.FirstPatchDay = firstDay;
+                patch.LastPatchDay = lastDay;
                 Console.Write($": {firstDay:dd/MM/yyyy} - {lastDay:dd/MM/yyyy}");
             }
             Console.WriteLine();
