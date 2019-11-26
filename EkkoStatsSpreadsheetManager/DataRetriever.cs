@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using static EkkoStatsSpreadsheetManager.URLRoles;
 
 namespace EkkoStatsSpreadsheetManager
@@ -17,20 +18,22 @@ namespace EkkoStatsSpreadsheetManager
 
         private static RoleStatRecord GetRoleStatRecordFromHTMLCode(string htmlCode)
         {
-            return new RoleStatRecord(GetPercentage(htmlCode, "<div class=\"win-rate"), GetPercentage(htmlCode, "<div class=\"pick-rate\">"));
+            return new RoleStatRecord(GetPercentage(htmlCode, "win-rate"), GetPercentage(htmlCode, "pick-rate"), GetInt(htmlCode, "matches"));
         }
         private static float GetBanRateFromHTMLCode(string htmlCode)
         {
-            return GetPercentage(htmlCode, "<div class=\"ban-rate\">");
+            return GetPercentage(htmlCode, "ban-rate");
         }
 
-        private static float GetPercentage(string htmlCode, string baseDivInitialization)
+        private static float GetPercentage(string htmlCode, string baseDivClassName) => float.Parse(GetValue(htmlCode, baseDivClassName).Replace("%", ""));
+        private static int GetInt(string htmlCode, string baseDivClassName) => int.Parse(GetValue(htmlCode, baseDivClassName), NumberStyles.AllowThousands);
+        private static string GetValue(string htmlCode, string baseDivClassName)
         {
-            var winrateDivStart = htmlCode.IndexOf(baseDivInitialization);
+            var winrateDivStart = htmlCode.IndexOf($"<div class=\"{baseDivClassName}");
             const string valueDivString = "<div class=\"value\">";
-            var percentageDivStart = htmlCode.IndexOf(valueDivString, winrateDivStart) + valueDivString.Length;
-            var percentageDivEnd = htmlCode.IndexOf('%', percentageDivStart);
-            return float.Parse(htmlCode.Substring(percentageDivStart, percentageDivEnd - percentageDivStart));
+            var valueDivStart = htmlCode.IndexOf(valueDivString, winrateDivStart) + valueDivString.Length;
+            var valueDivEnd = htmlCode.IndexOf("</div>", valueDivStart);
+            return htmlCode.Substring(valueDivStart, valueDivEnd - valueDivStart);
         }
 
         private static string GetHTML(GamePatch patch, string rank, string role = "jungle") => GetHTML(GetURL(patch, rank, role));
