@@ -59,8 +59,8 @@ namespace EkkoStatsSpreadsheetManager
 
         public static GamePatchNumber Parse(string patch)
         {
-            int i = 1;
-            while (!char.IsDigit(patch[^i]))
+            int i = 0;
+            while (!char.IsDigit(patch[^(i + 1)]))
                 i++;
             string additional = i > 0 ? patch.Substring(patch.Length - i, i) : "";
             string numberPatch = patch.Substring(0, patch.Length - i);
