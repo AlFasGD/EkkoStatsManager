@@ -45,7 +45,9 @@ namespace EkkoStatsSpreadsheetManager
         public static string ClientID, ClientSecret, Token;
         public static ulong ServerID = 245660829054271489;
         public static ulong DailyEkkoStatsID = 628904684182175744;
+        public static ulong RekkonID = 205782690912272385;
         public static SocketTextChannel DailyEkkoStatsChannel;
+        public static IMessageChannel RekkonPMChannel;
         public static DiscordSocketClient Client;
 
         public static HashSet<string> DailyAnnouncedRanks = new HashSet<string>
@@ -59,6 +61,8 @@ namespace EkkoStatsSpreadsheetManager
             MasterPlus,
             AllRanks
         };
+
+        public static bool TestMode;
 
         public static void Main(string[] args)
         {
@@ -93,6 +97,10 @@ namespace EkkoStatsSpreadsheetManager
                     case "help":
                     case "h":
                         ShowHelp();
+                        break;
+                    case "testmode":
+                    case "tm":
+                        ToggleTestMode();
                         break;
                     case "exit":
                         return;
@@ -129,9 +137,9 @@ namespace EkkoStatsSpreadsheetManager
                 {
                     var matchesValues = new List<IList<object>>
                     {
-                        new List<object> { record.Mid.Matches    },
-                        new List<object> { record.Jungle.Matches },
-                        new List<object> { $"=G{r} + G{r + 1}"   },
+                        new List<object> { (int)record.Mid.Matches    },
+                        new List<object> { (int)record.Jungle.Matches },
+                        new List<object> { $"=G{r} + G{r + 1}"        },
                     };
 
                     request = Service.Spreadsheets.Values.Update(new ValueRange { Values = matchesValues, MajorDimension = "ROWS" }, spreadsheet.SpreadsheetId, $"{patch}!G{r}:G{r + 2}");
@@ -188,10 +196,10 @@ namespace EkkoStatsSpreadsheetManager
 
             int index = PlatinumPlusManager.Patches.Count - 1;
             var today = DateTime.Now.Date;
-            while (PlatinumPlusManager.Patches.ElementAt(index).FirstPatchDay > today)
+            while (PlatinumPlusManager.Patches.ElementAt(index).LastPatchDay > today)
                 index--;
             var lastPatch = PlatinumPlusManager.Patches.ElementAt(index);
-            RetrieveData(lastPatch, 2, lastPatch.PatchNumber.ToString(), BiweeklyAnnouncedRanks, true, true);
+            RetrieveData(lastPatch, 2, $"final patch {lastPatch.PatchNumber}", BiweeklyAnnouncedRanks, true, true);
 
             Client.SetGameAsync(null);
         }
@@ -203,7 +211,7 @@ namespace EkkoStatsSpreadsheetManager
             {
                 currentPatch = currentPatch.GetPreviousPatch();
                 Client.SetGameAsync($"patch {currentPatch} Ekko stats", type: ActivityType.Watching);
-                RetrieveData(currentPatch, 2, currentPatch.PatchNumber.ToString(), new HashSet<string>(), true, true);
+                RetrieveData(currentPatch, 2, $"final patch {currentPatch.PatchNumber}", new HashSet<string>(), true, true);
             }
 
             Client.SetGameAsync(null);
@@ -214,7 +222,15 @@ namespace EkkoStatsSpreadsheetManager
             WriteCommandHelp("lastpatch", "lp", "Retrieves last patch's u.gg info about Platinum+, Diamond+, Master+ and All Ranks.");
             WriteCommandHelp("allavailablepatches", "app, all", "Retrieves last 4 patches' u.gg info about Platinum+, Diamond+, Master+ and All Ranks.");
             WriteCommandHelp("help", "h", "Shows this help message.");
-            Console.ForegroundColor = ConsoleColor.White;
+            WriteCommandHelp("testmode", "tm", "Toggles test mode.");
+            Console.ForegroundColor = ConsoleColor.Gray;
+        }
+        public static void ToggleTestMode()
+        {
+            TestMode = !TestMode;
+            WriteWithColor("Test Mode ", ConsoleColor.Blue);
+            WriteLineWithColor(TestMode ? "Enabled" : "Disabled", TestMode ? ConsoleColor.Green : ConsoleColor.Red);
+            Console.ForegroundColor = ConsoleColor.Gray;
         }
 
         public static void WriteCommandHelp(string command, string commandAlts, string info)
@@ -238,7 +254,7 @@ namespace EkkoStatsSpreadsheetManager
 
         public static void SendDiscordMessage(StatRecord record, string caption, bool includeMatches)
         {
-            DailyEkkoStatsChannel.SendMessageAsync(
+            (TestMode ? RekkonPMChannel : DailyEkkoStatsChannel).SendMessageAsync(
 @$"{caption}
 ```cs
 {GetCodeBlock(record, includeMatches)}
@@ -272,6 +288,7 @@ Pick Rate | {record.Jungle.PickRate,4:N1}  | {record.Mid.PickRate,4:N1}  | {reco
         {
             var guild = Client.GetGuild(ServerID);
             DailyEkkoStatsChannel = guild.GetTextChannel(DailyEkkoStatsID);
+            RekkonPMChannel = await Client.GetUser(RekkonID).GetOrCreateDMChannelAsync();
         }
         public static void ReadDiscordBotCredentials()
         {

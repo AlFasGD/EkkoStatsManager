@@ -22,7 +22,7 @@ namespace EkkoStatsSpreadsheetManager
         }
         private string GetCompactValueRepresentation(int divisor)
         {
-            return ((double)Count / divisor).ToString($"N{2 - (int)Math.Log10(Count / divisor)},4");
+            return string.Format("{0,4}", ((double)Count / divisor).ToString($"N{2 - (int)Math.Log10(Count / divisor)}"));
         }
     }
 }
