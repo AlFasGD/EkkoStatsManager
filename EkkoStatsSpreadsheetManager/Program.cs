@@ -142,7 +142,7 @@ namespace EkkoStatsSpreadsheetManager
                 WriteLineWithColor("Successfully retrieved information", ConsoleColor.Green);
 
                 if (announcedRanks.Contains(rank))
-                    SendDiscordMessage(record, $"{GetAppropriateRankName(rank)} Ekko {GetOrderedCaption()}");
+                    SendDiscordMessage(record, $"{GetAppropriateRankName(rank)} Ekko {GetOrderedCaption()}", retrieveTotalMatchCount);
 
                 WriteLineWithColor("", ConsoleColor.Gray);
             }
@@ -236,21 +236,26 @@ namespace EkkoStatsSpreadsheetManager
             Console.WriteLine(text);
         }
 
-        public static void SendDiscordMessage(StatRecord record, string caption)
+        public static void SendDiscordMessage(StatRecord record, string caption, bool includeMatches)
         {
             DailyEkkoStatsChannel.SendMessageAsync(
 @$"{caption}
 ```cs
-     Role |  JNG  |  MID  |  OVR
----------------------------------
-Pick Rate | {record.Jungle.PickRate,4:N1}  | {record.Mid.PickRate,4:N1}  | {record.OverallPickRate,4:N1}
- Win Rate | {record.Jungle.WinRate:N2} | {record.Mid.WinRate:N2} | {record.OverallWinRate:N2}
- Ban Rate |  N/A  |  N/A  | {record.OverallBanRate,4:N1}
+{GetCodeBlock(record, includeMatches)}
 ```"
             );
 
             WriteLineWithColor("Sent Discord Message", ConsoleColor.Green);
         }
+
+        public static string GetCodeBlock(StatRecord record, bool includeMatches) => @$"
+     Role |  JNG  |  MID  |  OVR
+---------------------------------
+Pick Rate | {record.Jungle.PickRate,4:N1}  | {record.Mid.PickRate,4:N1}  | {record.OverallPickRate,4:N1}
+ Win Rate | {record.Jungle.WinRate:N2} | {record.Mid.WinRate:N2} | {record.OverallWinRate:N2}
+ Ban Rate |  N/A  |  N/A  | {record.OverallBanRate,4:N1}"                                                                                 + (includeMatches ? @$"
+  Matches | {record.Jungle.Matches.ToCompactString()} | {record.Mid.Matches.ToCompactString()} | {record.TotalMatches.ToCompactString()}"                   : "");
+
 
         public static async void InitializeDiscordBot()
         {
