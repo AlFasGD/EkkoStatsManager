@@ -8,6 +8,7 @@
         public float OverallPickRate => Mid.PickRate + Jungle.PickRate;
         public float OverallWinRate => (Mid.WeightedWinRate + Jungle.WeightedWinRate) / OverallPickRate;
         public float OverallPresenceRate => OverallPickRate + OverallBanRate;
+        public MatchesCount TotalMatches => Mid.Matches + Jungle.Matches;
 
         public string OverallBanRateString => $"{OverallBanRate:N1}%";
 

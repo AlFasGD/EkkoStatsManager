@@ -4,7 +4,7 @@
     {
         public float WinRate;
         public float PickRate;
-        public int Matches;
+        public MatchesCount Matches;
 
         public float WeightedWinRate => WinRate * PickRate;
 
