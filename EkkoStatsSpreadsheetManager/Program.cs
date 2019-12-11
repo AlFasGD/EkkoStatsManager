@@ -172,6 +172,16 @@ namespace EkkoStatsSpreadsheetManager
             Console.WriteLine("Completed retrieval");
         }
 
+        private static string GetOrdinal(int value)
+        {
+            return value switch
+            {
+                1 => "first",
+                2 => "second",
+                3 => "third",
+            };
+        }
+
         public static void RetrieveTodayData()
         {
             Client.SetGameAsync("today's Ekko stats", type: ActivityType.Watching);
@@ -182,13 +192,17 @@ namespace EkkoStatsSpreadsheetManager
             {
                 currentPatch = currentPatch.GetNextPatch();
                 PlatinumPlusManager.CreateNewPatch();
+                DiamondPlusManager.CreateNewPatch();
                 MasterPlusManager.CreateNewPatch();
+                AllRanksManager.CreateNewPatch();
             }
             int daysOffset = (today - currentPatch.FirstPatchDay).Days;
             int row = 5 + daysOffset * 3;
-            RetrieveData(currentPatch, row, today.ToString("dd/MM/yyyy"), DailyAnnouncedRanks);
+            RetrieveData(currentPatch, row, today.ToString("dd/MM/yyyy") + GetLowSampleSizeWarning(), DailyAnnouncedRanks);
 
             Client.SetGameAsync(null);
+
+            string GetLowSampleSizeWarning() => daysOffset < 3 ? $" ({GetOrdinal(daysOffset + 1)} day of {currentPatch} - stats may be slightly deceptive due to lower sample size)" : "";
         }
         public static void RetrieveLastPatchData()
         {

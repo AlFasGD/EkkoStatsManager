@@ -9,6 +9,7 @@ namespace EkkoStatsSpreadsheetManager
         public GamePatchNumber PatchNumber;
         public DateTime FirstPatchDay;
         public DateTime LastPatchDay;
+        public int Duration => (int)LastPatchDay.Subtract(FirstPatchDay).TotalDays + 1;
 
         public GamePatch(GamePatchNumber patchNumber)
             : this(patchNumber, default) { }
@@ -22,6 +23,9 @@ namespace EkkoStatsSpreadsheetManager
         }
 
         public int CompareTo(GamePatch other) => PatchNumber.CompareTo(other.PatchNumber);
+
+        public DateTime GetDayOfPatch(int day) => FirstPatchDay.AddDays(day);
+        public string GetFormattedDayOfPatch(int day) => GetDayOfPatch(day).ToString("dd/MM/yyyy");
 
         public GamePatch GetNextPatch(int patchDuration = DefaultPatchDuration) => new GamePatch(PatchNumber.GetNextPatch(), LastPatchDay.AddDays(1), LastPatchDay.AddDays(patchDuration));
         public GamePatch GetPreviousPatch() => new GamePatch(PatchNumber.GetPreviousPatch(), FirstPatchDay.AddDays(-DefaultPatchDuration), LastPatchDay.AddDays(-1));
