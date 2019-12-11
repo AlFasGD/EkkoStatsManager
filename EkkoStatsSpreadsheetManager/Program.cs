@@ -406,6 +406,20 @@ Pick Rate | {record.Jungle.PickRate,4:N1}  | {record.Mid.PickRate,4:N1}  | {reco
                     }
                 },
             }, spreadsheetID).Execute();
+
+            int duration = patch.Duration;
+
+            var values = new List<IList<object>>();
+
+            for (int i = 0; i < duration; i++)
+            {
+                values.Add(new List<object> { patch.GetFormattedDayOfPatch(i) });
+                values.Add(new List<object> { null });
+                values.Add(new List<object> { null });
+            }
+            var dateChangeReqest = Service.Spreadsheets.Values.Update(new ValueRange { Values = values, MajorDimension = "ROWS" }, spreadsheetID, $"{patch}!A{5}:A{4 + 3 * duration}");
+            dateChangeReqest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            dateChangeReqest.Execute();
         }
     }
 
